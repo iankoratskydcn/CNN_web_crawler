@@ -57,7 +57,8 @@ class CNNContentHandler:
         self.dataset = pd.concat([self.dataset, pd.DataFrame([self.CNN_article])], ignore_index=True)
 
     def save_content(self, filename):
-        self.dataset.to_csv(filename)
+        # self.dataset.to_csv(filename)
+        self.dataset.to_json(filename,orient="records")
 
     def process_page(self, html):
         self.create_empty_article()

@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 class WebCrawler:
 
-    def __init__(self, content_handler, save_file="CNN_Articles.csv", urls=None, stop_depth=sys.maxsize):
+    def __init__(self, content_handler, save_file="CNN_Articles.json", urls=None, stop_depth=sys.maxsize): #changed CNN_Articles.csv to CNN_Articles.json
         self.logger = logging.getLogger(__name__)
         self.content_handler = content_handler
         self.save_file = save_file
@@ -45,16 +45,25 @@ class WebCrawler:
 
     def crawl(self, url):
         html = self.download_url_text(url[0])
-        self.content_handler.process_page(html)
-        for curr_url in self.get_urls_links(url[0], html):
-            self.add_url_to_visit((curr_url, url[1] + 1))
+        try:
+            if url != "https://edition.cnn.com/collection":
+                self.content_handler.process_page(html)
+                for curr_url in self.get_urls_links(url[0], html):
+                    self.add_url_to_visit((curr_url, url[1] + 1))
+        except:
+            pass
 
     def run(self):
         try:
             while self.urls_to_visit:
                 curr_url = self.urls_to_visit.popitem(last=False)
                 self.logger.info(f'Crawling: {curr_url[0]}, Depth: {curr_url[1]}, Remaining urls: {len(self.urls_to_visit)}')
+                
+                    
+                
                 try:
+                    if(curr_url[0] ==  "https://edition.cnn.com/collection"):
+                        continue
                     self.crawl(curr_url)
                 except Exception as err:
                     self.logger.exception(f'Exception crawl: {curr_url[0]},  Depth: {curr_url[1]}, Error: {err}')
