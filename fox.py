@@ -8,52 +8,31 @@ def getTheGoodStuff(newsstories):
     global stories
     for data in newsstories:
         try:
-            htmlatag = data.find("h3", class_="title").find("a")
+            htmlatag = data.find("a")
             headline = htmlatag.getText()
             url = htmlatag.get("href")
-            d = {"headline" : headline,
-                "url" : url}
-            stories.append(d)
-        except:
-            pass
+            d = {
+                    "url": "",
+                    "title":"",
+                    "body":""
+                }
+            
+            r  = requests.get(url)
+            data = r.text
+            soup = BeautifulSoup(data,"lxml")
+            print(soup.find("meta",property="og:type").attrs['content'])
+            if soup.find("meta",property="og:type").attrs['content'] == "article":
+                body = soup.find("div",class_="article-body")
+                jj = body.find_all("p")
 
-def _try(url):
-    r = requests.get(url)
-    b = BeautifulSoup(r.content,'lxml')
-    nbc_links = []
-    for news in b.findAll('h2'):
-        try:
-            nbc_links.append(news.parent.a['href'])
-        except:
-            pass
+                body_text=""
 
-    for i in nbc_links:
-        r = requests.get(i)
-        b = BeautifulSoup(r.content,'lxml')
-        
-        element ={
-            "url": "",
-            "title":"",
-            "body":""
-        }
-        
-        body = ""
-        
-        try:
-            if b.find("meta", property="og:type")["content"] == "article":
-                jj = b.find("div", class_="article-body__content")
-                
-                for j in jj.findChildren("p", recursive=False):
-                    
-                    body = body + j.decode_contents().strip() + "\n"
-                
-                element["url"]=i
-                element["body"]=body
-                element["title"]=b.find("h1", text=True).decode_contents().strip()
-                nbc_elements.append(element)
-                print(element["title"])
+                for j in jj:
+                    body_text = body_text + j.decode_contents().strip() + "\n"
+                d["body"]=body_text
+                stories.append(d)
         except:
-            pass
+                pass
 
 def scrapeWebsites():
     global stories
@@ -65,15 +44,14 @@ def scrapeWebsites():
     data = r.text
     soup = BeautifulSoup(data,"lxml")
     for i in range(0, 15):
-        foundstories = soup.find_all("article", class_="article story-" + str(i))
+        foundstories = soup.find_all("h3", class_="title")
+        
         getTheGoodStuff(foundstories)
     
 def displayStories():
     global stories
     for i in range(0, len(stories)):
-        print(stories[i]["headline"])
-        print(stories[i]['url'])
-        print("")
+        print(stories[i]['body'])
     
 scrapeWebsites()
 displayStories()
